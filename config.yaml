@@ -47,3 +47,16 @@ gemini:
 
 synthesis:
   final_skill_filename: skill.md
+
+agent_team:
+  output_dir_name: agent_team
+  source_spec: ""
+  business_name: KORA Food Hall
+  domain: korafoodhall.com
+  case_context: "Jl. Monkey Forest 15, Ubud, Bali; December 2026 opening; audiences include tourists, Ubud locals, tenants, investors, event planners, and food/travel media."
+  languages:
+    - en
+    - ru
+    - id
+    - zh
+    - ko

@@ -51,12 +51,23 @@ class SynthesisConfig:
 
 
 @dataclass
+class AgentTeamConfig:
+    output_dir_name: str = "agent_team"
+    source_spec: str = ""
+    business_name: str = ""
+    domain: str = ""
+    case_context: str = ""
+    languages: list[str] = field(default_factory=lambda: ["en"])
+
+
+@dataclass
 class AppConfig:
     project: ProjectConfig = field(default_factory=ProjectConfig)
     youtube: YouTubeConfig = field(default_factory=YouTubeConfig)
     selection: SelectionConfig = field(default_factory=SelectionConfig)
     gemini: GeminiConfig = field(default_factory=GeminiConfig)
     synthesis: SynthesisConfig = field(default_factory=SynthesisConfig)
+    agent_team: AgentTeamConfig = field(default_factory=AgentTeamConfig)
 
     @property
     def output_dir(self) -> Path:
@@ -90,6 +101,7 @@ def load_config(path: str | Path) -> AppConfig:
         selection=_selection_config(data.get("selection", {})),
         gemini=_gemini_config(data.get("gemini", {})),
         synthesis=_synthesis_config(data.get("synthesis", {})),
+        agent_team=_agent_team_config(data.get("agent_team", {})),
     )
 
 
@@ -115,6 +127,16 @@ def apply_overrides(config: AppConfig, overrides: dict[str, Any]) -> AppConfig:
             config.project.output_language = str(value)
         elif key == "output_dir":
             config.project.output_dir = Path(value).expanduser()
+        elif key == "source_spec":
+            config.agent_team.source_spec = str(value)
+        elif key == "business_name":
+            config.agent_team.business_name = str(value)
+        elif key == "domain":
+            config.agent_team.domain = str(value)
+        elif key == "case_context":
+            config.agent_team.case_context = str(value)
+        elif key == "languages":
+            config.agent_team.languages = _list_value(value)
     return config
 
 
@@ -173,6 +195,17 @@ def _synthesis_config(data: dict[str, Any]) -> SynthesisConfig:
     return SynthesisConfig(final_skill_filename=str(data.get("final_skill_filename", "skill.md")))
 
 
+def _agent_team_config(data: dict[str, Any]) -> AgentTeamConfig:
+    return AgentTeamConfig(
+        output_dir_name=str(data.get("output_dir_name", "agent_team")),
+        source_spec=str(data.get("source_spec", "")),
+        business_name=str(data.get("business_name", "")),
+        domain=str(data.get("domain", "")),
+        case_context=str(data.get("case_context", "")),
+        languages=_list_value(data.get("languages", ["en"])),
+    )
+
+
 def _optional_int(value: Any) -> int | None:
     if value in (None, ""):
         return None
@@ -185,4 +218,3 @@ def _list_value(value: Any) -> list[str]:
     if isinstance(value, str):
         return [item.strip() for item in value.split(",") if item.strip()]
     return [str(item).strip() for item in value if str(item).strip()]
-

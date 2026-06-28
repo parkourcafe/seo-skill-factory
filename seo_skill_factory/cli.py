@@ -4,7 +4,9 @@ import argparse
 import json
 from pathlib import Path
 
+from . import __version__
 from .config import apply_overrides, load_config, load_dotenv_if_available
+from .agent_team import build_agent_team
 from .discovery import discover
 from .gemini import analyze_videos
 from .logging_utils import configure_logging
@@ -13,7 +15,7 @@ from .synthesis import synthesize
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Create an SEO AI Skill from YouTube videos.")
-    parser.add_argument("--version", action="version", version="seo-skill-factory 0.1.0")
+    parser.add_argument("--version", action="version", version=f"seo-skill-factory {__version__}")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     discover_parser = subparsers.add_parser("discover", help="Fetch, filter, score, and export YouTube videos.")
@@ -44,6 +46,14 @@ def main() -> None:
     add_common(synthesize_parser)
     synthesize_parser.add_argument("--input", required=True, help="Directory containing per-video JSON files.")
 
+    agent_team_parser = subparsers.add_parser("agent-team", help="Generate a controlled SEO/GEO multi-agent skill pack.")
+    add_common(agent_team_parser)
+    agent_team_parser.add_argument("--source-spec", default="", help="Optional source engineering spec markdown path.")
+    agent_team_parser.add_argument("--business-name", default="", help="Business or pilot case name.")
+    agent_team_parser.add_argument("--domain", default="", help="Business domain for the pilot case.")
+    agent_team_parser.add_argument("--case-context", default="", help="Short pilot context string.")
+    agent_team_parser.add_argument("--languages", default="", help="Comma-separated prompt/market languages.")
+
     args = parser.parse_args()
     config_path = Path(args.config).expanduser()
     load_dotenv_if_available(config_path.parent)
@@ -64,6 +74,11 @@ def main() -> None:
 
     if args.command == "synthesize":
         outputs = synthesize(Path(args.input).expanduser(), config)
+        print(json.dumps({key: str(path) for key, path in outputs.items()}, indent=2))
+        return
+
+    if args.command == "agent-team":
+        outputs = build_agent_team(config)
         print(json.dumps({key: str(path) for key, path in outputs.items()}, indent=2))
         return
 

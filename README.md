@@ -65,6 +65,16 @@ Synthesize the final skill:
 python main.py synthesize --input outputs/per_video_json --config config.yaml
 ```
 
+Generate a controlled SEO/GEO multi-agent skill pack from an engineering spec:
+
+```bash
+python main.py agent-team \
+  --source-spec "/Users/msnigmatullaeva/Downloads/seo-agent-team-spec_1.md" \
+  --business-name "KORA Food Hall" \
+  --domain "korafoodhall.com" \
+  --config config.yaml
+```
+
 You can also use a playlist:
 
 ```bash
@@ -160,6 +170,28 @@ The synthesizer also adds `[INTERPRETED]` to untagged rules or tactics as a fall
 - `outputs/synthesis/skill.md`
 
 The final `skill.md` is written as an operating instruction for an AI assistant, not as a recap.
+
+## Agent Team Outputs
+
+`agent-team` writes a controlled SEO/GEO multi-agent pack:
+
+- `outputs/agent_team/seo_agent_team_skill.md`
+- `outputs/agent_team/agents/seo_chief_orchestrator.md`
+- `outputs/agent_team/agents/relevance_engineer.md`
+- `outputs/agent_team/agents/search_systems_operator.md`
+- `outputs/agent_team/agents/ai_visibility_geo_agent.md`
+- `outputs/agent_team/agents/content_architect.md`
+- `outputs/agent_team/agents/digital_pr_authority_agent.md`
+- `outputs/agent_team/agents/seo_qa_policy_agent.md`
+- `outputs/agent_team/workflows.md`
+- `outputs/agent_team/knowledge_structure.md`
+- `outputs/agent_team/kpi_framework.md`
+- `outputs/agent_team/pilot_task.md`
+- `outputs/agent_team/source_spec_digest.md`
+- `outputs/agent_team/json_contracts/*.schema.json`
+- `outputs/agent_team/agent_team_manifest.json`
+
+The generated team follows controlled-autonomy rules: no imitation of living experts, no fabricated data, no publication/deployment/outreach without human approval, and no manipulative SEO tactics.
 
 ## Local Validation
 
