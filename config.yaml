@@ -1,0 +1,49 @@
+project:
+  output_dir: outputs
+  author_name: Mike King
+  niche: SEO, AI Search, Relevance Engineering, Technical SEO
+  output_language: en
+
+youtube:
+  api_key_env: YOUTUBE_API_KEY
+  channel_url: ""
+  channel_id: ""
+  playlist_url: ""
+  playlist_id: ""
+  max_fetch: 200
+  require_captions: false
+  min_duration_seconds: 300
+  max_duration_seconds: 7200
+  year_min: 2023
+  year_max: 2026
+  include_keywords:
+    - AI Search
+    - AI Mode
+    - AI Overviews
+    - GEO
+    - Generative Engine Optimization
+    - Relevance Engineering
+    - query fan-out
+    - embeddings
+    - RAG
+    - passage retrieval
+    - Technical SEO
+    - Content Engineering
+    - Internal Linking
+    - structured data
+  exclude_keywords:
+    - hiring
+    - careers
+
+selection:
+  max_videos: 20
+
+gemini:
+  api_key_env: GEMINI_API_KEY
+  model: gemini-3.5-flash
+  temperature: 0
+  request_timeout_seconds: 900
+  sleep_between_requests_seconds: 2
+
+synthesis:
+  final_skill_filename: skill.md
