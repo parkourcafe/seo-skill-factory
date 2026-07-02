@@ -109,6 +109,39 @@ def agent_roles() -> list[AgentRole]:
             ],
         ),
         AgentRole(
+            identifier="audience_intelligence_agent",
+            title="Target Audience Intelligence Agent",
+            responsibilities=[
+                "Define audience segments by outcomes, behavior, psychographics, and Jobs-To-Be-Done, not by demographics alone.",
+                "Build evidence-based personas with goals, pains, gains, motivations, triggers, objections, and decision context.",
+                "Map each segment to search intents, query fan-out, and answer-engine prompts for SEO and GEO.",
+                "Prioritize first-party and zero-party data; mark every assumption and request missing inputs explicitly.",
+                "For physical destinations, model real-world intent (visit, call, reservation, directions) plus local and seasonal context.",
+                "Hand structured segments, intents, and prompts to intent mapping, content, and GEO agents.",
+            ],
+            system_prompt=(
+                "You are the Target Audience Intelligence Agent. Turn business context, first-party data, and market signals "
+                "into actionable audience segments, JTBD-based personas, and per-segment search intent for SEO and AI search. "
+                "Segment by outcomes, motivations, context, and behavior, not demographic stereotypes. Tie every segment to "
+                "observable evidence and to the queries and AI prompts that segment would actually use. Never invent survey data, "
+                "traffic, personas, reviews, or numbers. Separate facts, assumptions, and recommendations, and request missing "
+                "first-party data explicitly."
+            ),
+            output_format=[
+                "Segment overview",
+                "Persona profiles (goals, JTBD, pains, gains, triggers, objections, decision context)",
+                "Journey stage per segment",
+                "Search intents and fan-out queries per segment",
+                "AI answer-engine prompts per segment",
+                "Preferred channels and content formats",
+                "Messaging angles and required proof",
+                "Data sources and evidence",
+                "Assumptions and missing inputs",
+                "Priority, expected impact, KPI, validation method",
+                "Handoff to intent mapping, content, or GEO agents",
+            ],
+        ),
+        AgentRole(
             identifier="relevance_engineer",
             title="Relevance Engineering Agent",
             responsibilities=[
@@ -359,6 +392,14 @@ def build_agent_markdown(role: AgentRole) -> str:
 def build_workflows(config: AppConfig) -> str:
     return f"""# SEO/GEO Agent Team Workflows
 
+## Workflow 0: Target Audience Intelligence
+1. Intake business goal, offer, market, location, and any first-party data (GA4 audiences, GSC queries, CRM, reviews, reservations, booking notes).
+2. `audience_intelligence_agent` drafts segments by Jobs-To-Be-Done, behavior, and psychographics, not demographics alone.
+3. For each segment, build an evidence-based persona and map its search intents, fan-out queries, and AI answer-engine prompts.
+4. Mark every assumption and list missing first-party inputs instead of inventing data.
+5. Hand segments and intents to `search_systems_operator` (prioritization), `content_architect` (briefs), and `ai_visibility_geo_agent` (prompt sets).
+6. `seo_qa_policy_agent` checks for fabricated personas, unsupported claims, and demographic stereotyping before use.
+
 ## Workflow 1: Weekly SEO Intelligence
 1. Pull GSC data.
 2. Pull GA4 landing page and conversion data.
@@ -431,6 +472,13 @@ def build_knowledge_structure() -> str:
     approved_claims.md
     entity_graph.json
     sub_brands/
+  /audience
+    segments/
+    personas/
+    jtbd_maps/
+    search_intent_maps/
+    first_party_data_exports/
+    voice_of_customer/
   /seo
     technical_audits/
     keyword_research/
@@ -533,18 +581,20 @@ Analyze {name}'s readiness for Google Search, Google AI Overviews, AI Mode, Perp
 {config.agent_team.case_context or "Add business context, launch stage, target markets, and audiences."}
 
 ## Required Outputs
-1. Technical SEO audit, including JS rendering validation.
-2. Entity graph and local SEO audit.
-3. Schema map for relevant page and business types.
-4. AI visibility baseline.
-5. Multilingual prompt set for monitoring.
-6. YouTube AI visibility content map.
-7. Content roadmap.
-8. Digital PR and citation plan.
-9. Conversion tracking plan.
-10. 90-day implementation roadmap.
+1. Target audience analysis: segments, JTBD personas, and per-segment search intent.
+2. Technical SEO audit, including JS rendering validation.
+3. Entity graph and local SEO audit.
+4. Schema map for relevant page and business types.
+5. AI visibility baseline.
+6. Multilingual prompt set for monitoring.
+7. YouTube AI visibility content map.
+8. Content roadmap.
+9. Digital PR and citation plan.
+10. Conversion tracking plan.
+11. 90-day implementation roadmap.
 
 ## Agent Assignment
+- `audience_intelligence_agent`: audience segments, JTBD personas, per-segment search intents and AI prompts, first-party data gaps, real-world local intent.
 - `relevance_engineer`: crawlability, indexability, sitemap, robots, schema, raw/rendered HTML, entity graph, schema map, extractable answer blocks.
 - `search_systems_operator`: audience strategy, local-first prioritization, commercial page priorities, conversion event plan, 90-day roadmap.
 - `ai_visibility_geo_agent`: prompt set, AI answer baseline, competitors, cited sources, YouTube visibility map.
@@ -619,6 +669,67 @@ def json_contract_schemas() -> dict[str, dict[str, Any]]:
                 },
                 "missing_inputs": string_array,
                 "next_agent": {"const": "search_systems_operator"},
+            },
+        },
+        "audience_analysis_output": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "required": ["project", "business_context", "segments", "missing_inputs", "next_agent"],
+            "properties": {
+                "project": {"type": "string"},
+                "business_context": {"type": "string"},
+                "analysis_date": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+                "segments": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["segment_name", "segment_basis", "jobs_to_be_done", "persona", "journey_stage", "search_intents", "evidence", "assumptions", "priority", "kpi", "validation_method"],
+                        "properties": {
+                            "segment_name": {"type": "string"},
+                            "segment_basis": {"enum": ["jobs_to_be_done", "behavioral", "psychographic", "contextual", "demographic", "mixed"]},
+                            "jobs_to_be_done": string_array,
+                            "persona": {
+                                "type": "object",
+                                "required": ["label", "goals", "pains", "gains", "triggers", "objections", "decision_context"],
+                                "properties": {
+                                    "label": {"type": "string"},
+                                    "goals": string_array,
+                                    "pains": string_array,
+                                    "gains": string_array,
+                                    "triggers": string_array,
+                                    "objections": string_array,
+                                    "decision_context": {"type": "string"},
+                                },
+                            },
+                            "journey_stage": {"enum": ["awareness", "consideration", "conversion", "retention", "advocacy"]},
+                            "search_intents": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "required": ["query", "intent", "stage"],
+                                    "properties": {
+                                        "query": {"type": "string"},
+                                        "intent": {"enum": ["informational", "commercial", "transactional", "local", "navigational"]},
+                                        "stage": {"enum": ["awareness", "consideration", "conversion", "retention"]},
+                                    },
+                                },
+                            },
+                            "ai_prompts": string_array,
+                            "channels": string_array,
+                            "content_formats": string_array,
+                            "messaging_angles": string_array,
+                            "proof_needed": string_array,
+                            "evidence": string_array,
+                            "assumptions": string_array,
+                            "priority": {"enum": ["high", "medium", "low"]},
+                            "expected_impact": {"type": "string"},
+                            "kpi": {"type": "string"},
+                            "validation_method": {"type": "string"},
+                        },
+                    },
+                },
+                "missing_inputs": string_array,
+                "next_agent": {"enum": ["search_systems_operator", "content_architect", "ai_visibility_geo_agent"]},
             },
         },
         "intent_map_output": {

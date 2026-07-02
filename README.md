@@ -177,6 +177,7 @@ The final `skill.md` is written as an operating instruction for an AI assistant,
 
 - `outputs/agent_team/seo_agent_team_skill.md`
 - `outputs/agent_team/agents/seo_chief_orchestrator.md`
+- `outputs/agent_team/agents/audience_intelligence_agent.md`
 - `outputs/agent_team/agents/relevance_engineer.md`
 - `outputs/agent_team/agents/search_systems_operator.md`
 - `outputs/agent_team/agents/ai_visibility_geo_agent.md`

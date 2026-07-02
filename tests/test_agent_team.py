@@ -31,7 +31,9 @@ class AgentTeamTests(unittest.TestCase):
             self.assertIn("team_skill", outputs)
             self.assertTrue(outputs["team_skill"].exists())
             self.assertTrue(outputs["agent_relevance_engineer"].exists())
+            self.assertTrue(outputs["agent_audience_intelligence_agent"].exists())
             self.assertTrue(outputs["schema_technical_audit_output"].exists())
+            self.assertTrue(outputs["schema_audience_analysis_output"].exists())
             self.assertTrue(outputs["manifest"].exists())
 
             team_skill = outputs["team_skill"].read_text(encoding="utf-8")
@@ -44,7 +46,13 @@ class AgentTeamTests(unittest.TestCase):
 
             manifest = json.loads(outputs["manifest"].read_text(encoding="utf-8"))
             self.assertIn("relevance_engineer", manifest["roles"])
+            self.assertIn("audience_intelligence_agent", manifest["roles"])
             self.assertEqual(manifest["business_name"], "KORA Food Hall")
+
+            audience_schema = json.loads(
+                outputs["schema_audience_analysis_output"].read_text(encoding="utf-8")
+            )
+            self.assertIn("segments", audience_schema["properties"])
 
 
 if __name__ == "__main__":
