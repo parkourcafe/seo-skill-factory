@@ -129,16 +129,19 @@ def agent_roles() -> list[AgentRole]:
             ),
             output_format=[
                 "Segment overview",
-                "Persona profiles (goals, JTBD, pains, gains, triggers, objections, decision context)",
+                "Persona profiles (identity, goals, JTBD, pains, gains, decision context)",
+                "Triggers and decision points (what happens right before the purchase)",
+                "Hidden psychology and secondary gains that block the purchase",
+                "Customer language captured verbatim (words, phrases, trust vs. repel terms)",
                 "Journey stage per segment",
                 "Search intents and fan-out queries per segment",
                 "AI answer-engine prompts per segment",
                 "Preferred channels and content formats",
                 "Messaging angles and required proof",
-                "Data sources and evidence",
-                "Assumptions and missing inputs",
+                "Golden-segment scoring table (pain acuity, ability to pay, active search, priority)",
+                "Data sources, evidence, assumptions, and missing inputs",
                 "Priority, expected impact, KPI, validation method",
-                "Handoff to intent mapping, content, or GEO agents",
+                "Optional shareable HTML one-pager and handoff to intent mapping, content, or GEO agents",
             ],
         ),
         AgentRole(
@@ -393,12 +396,13 @@ def build_workflows(config: AppConfig) -> str:
     return f"""# SEO/GEO Agent Team Workflows
 
 ## Workflow 0: Target Audience Intelligence
-1. Intake business goal, offer, market, location, and any first-party data (GA4 audiences, GSC queries, CRM, reviews, reservations, booking notes).
+1. Intake business goal, offer, market, location, and any first-party data (GA4 audiences, GSC queries, CRM, reviews, reservations, booking notes). For a full guided intake and profile, run the `deep-audience-analysis` skill in `skills/deep-audience-analysis`.
 2. `audience_intelligence_agent` drafts segments by Jobs-To-Be-Done, behavior, and psychographics, not demographics alone.
-3. For each segment, build an evidence-based persona and map its search intents, fan-out queries, and AI answer-engine prompts.
-4. Mark every assumption and list missing first-party inputs instead of inventing data.
-5. Hand segments and intents to `search_systems_operator` (prioritization), `content_architect` (briefs), and `ai_visibility_geo_agent` (prompt sets).
-6. `seo_qa_policy_agent` checks for fabricated personas, unsupported claims, and demographic stereotyping before use.
+3. For each segment, build an evidence-based persona; capture triggers, hidden psychology, and verbatim customer language; map its search intents, fan-out queries, and AI answer-engine prompts.
+4. Score segments (pain acuity, ability to pay, active search) into a golden-segment priority table, and name the primary focus segment.
+5. Mark every assumption and list missing first-party inputs instead of inventing data.
+6. Hand segments and intents to `search_systems_operator` (prioritization), `content_architect` (briefs), and `ai_visibility_geo_agent` (prompt sets).
+7. `seo_qa_policy_agent` checks for fabricated personas, unsupported claims, and demographic stereotyping before use.
 
 ## Workflow 1: Weekly SEO Intelligence
 1. Pull GSC data.
@@ -714,6 +718,10 @@ def json_contract_schemas() -> dict[str, dict[str, Any]]:
                                     },
                                 },
                             },
+                            "triggers": string_array,
+                            "hidden_psychology": string_array,
+                            "secondary_gains": string_array,
+                            "customer_language": string_array,
                             "ai_prompts": string_array,
                             "channels": string_array,
                             "content_formats": string_array,
@@ -721,6 +729,16 @@ def json_contract_schemas() -> dict[str, dict[str, Any]]:
                             "proof_needed": string_array,
                             "evidence": string_array,
                             "assumptions": string_array,
+                            "golden_segment_score": {
+                                "type": "object",
+                                "required": ["pain_acuity", "ability_to_pay", "actively_searching", "priority_score"],
+                                "properties": {
+                                    "pain_acuity": {"type": "integer", "minimum": 1, "maximum": 5},
+                                    "ability_to_pay": {"type": "integer", "minimum": 1, "maximum": 5},
+                                    "actively_searching": {"type": "integer", "minimum": 1, "maximum": 5},
+                                    "priority_score": {"type": "integer", "minimum": 3, "maximum": 15},
+                                },
+                            },
                             "priority": {"enum": ["high", "medium", "low"]},
                             "expected_impact": {"type": "string"},
                             "kpi": {"type": "string"},

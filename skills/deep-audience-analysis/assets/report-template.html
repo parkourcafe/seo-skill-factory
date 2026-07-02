@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{PROJECT_NAME}} — Audience Profile</title>
+<!--
+  Deep Audience Analysis — shareable one-pager.
+  Fill every {{PLACEHOLDER}} with the FULL block text (do not summarize).
+  Duplicate <section class="block"> per analysis block, and <tr> per segment.
+  Self-contained: no external CSS/JS/fonts. Safe to send or host as-is.
+-->
+<style>
+  :root{
+    --bg:#0f1115; --card:#171a21; --line:#2a2f3a; --ink:#e8eaf0;
+    --muted:#9aa3b2; --accent:#6c8cff; --gold:#e5b567;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:820px;margin:0 auto;padding:24px 18px 64px}
+  header{padding:28px 0 8px}
+  h1{font-size:1.7rem;margin:0 0 6px;line-height:1.2}
+  .sub{color:var(--muted);font-size:.95rem}
+  .tag{display:inline-block;font-size:.72rem;letter-spacing:.04em;text-transform:uppercase;
+    color:var(--accent);border:1px solid var(--line);border-radius:999px;padding:3px 10px;margin:10px 6px 0 0}
+  section.block{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:20px 20px 6px;margin:16px 0}
+  section.block h2{font-size:1.15rem;margin:0 0 4px;display:flex;gap:10px;align-items:baseline}
+  section.block h2 .n{color:var(--accent);font-variant-numeric:tabular-nums}
+  .insight{border-left:3px solid var(--accent);background:#12151c;color:var(--ink);
+    padding:10px 14px;border-radius:0 8px 8px 0;margin:12px 0}
+  .hyp{color:var(--gold);font-size:.8rem;font-weight:600}
+  table{width:100%;border-collapse:collapse;margin:8px 0 18px;font-size:.92rem;
+    display:block;overflow-x:auto;white-space:nowrap}
+  th,td{border:1px solid var(--line);padding:9px 11px;text-align:left}
+  th{background:#12151c;color:var(--muted);font-weight:600}
+  td.score{font-weight:700;color:var(--gold);text-align:center}
+  .top td{background:#1b1e17}
+  footer{color:var(--muted);font-size:.82rem;margin-top:28px;text-align:center}
+  @media(max-width:520px){h1{font-size:1.4rem}.wrap{padding:16px 12px 48px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>{{PROJECT_NAME}} — Deep Audience Profile</h1>
+    <div class="sub">{{NICHE_OR_PRODUCT}} · {{DATE}}</div>
+    <div>
+      <span class="tag">Identity</span><span class="tag">Pains</span>
+      <span class="tag">Triggers</span><span class="tag">Language</span>
+      <span class="tag">Golden segments</span>
+    </div>
+  </header>
+
+  <!-- Repeat one <section> per block (1–7). -->
+  <section class="block">
+    <h2><span class="n">01</span> Identity, values &amp; worldview</h2>
+    <p>{{BLOCK_1_BODY}}</p>
+    <div class="insight">{{BLOCK_1_INSIGHT}}</div>
+  </section>
+
+  <!-- Block 8: golden segments + scoring table. -->
+  <section class="block">
+    <h2><span class="n">08</span> Golden segments</h2>
+    <p>{{BLOCK_8_BODY}}</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Segment</th><th>Pain acuity</th><th>Ability to pay</th>
+          <th>Actively searching</th><th>Priority</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="top">
+          <td>{{SEGMENT_1_NAME}}</td><td>{{S1_PAIN}}</td><td>{{S1_PAY}}</td>
+          <td>{{S1_SEARCH}}</td><td class="score">{{S1_TOTAL}}</td>
+        </tr>
+        <!-- add more <tr> per segment -->
+      </tbody>
+    </table>
+    <p><strong>Primary focus:</strong> {{PRIMARY_SEGMENT}}.</p>
+  </section>
+
+  <footer>
+    Hypotheses marked <span class="hyp">[HYPOTHESIS]</span> — validate against real
+    reviews, interviews, and analytics before committing budget.
+  </footer>
+</div>
+</body>
+</html>

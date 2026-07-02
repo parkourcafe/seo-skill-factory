@@ -194,6 +194,41 @@ The final `skill.md` is written as an operating instruction for an AI assistant,
 
 The generated team follows controlled-autonomy rules: no imitation of living experts, no fabricated data, no publication/deployment/outreach without human approval, and no manipulative SEO tactics.
 
+## Deep Audience Analysis Skill
+
+`skills/deep-audience-analysis/` is a standalone, hand-authored skill for
+producing a deep, usable target-audience profile in any niche. It is designed to
+be dropped into Claude (as a Skill, a Project, or loose context files) and run by
+slash command or plain request ("analyze my audience" / "анализ целевой
+аудитории").
+
+The method:
+
+1. **Intake interview** in three roles (marketer, sales/interviewer, and a
+   stand-in for the audience), offering options when the expert stalls.
+2. **Eight-block profile**: identity/values, pains/fears, barriers/myths/past
+   experience, desired transformation, triggers/decision points, hidden
+   psychology, customer language (verbatim), and golden segments.
+3. **Golden-segment scoring**: each segment scored on pain acuity, ability to
+   pay, and active search, summed into a priority score with a named primary
+   segment.
+4. **Validation & depth control**: unvalidated claims are tagged `[HYPOTHESIS]`,
+   and thin blocks are re-run at higher depth.
+5. **Deliverable**: a long Markdown profile plus an optional self-contained,
+   mobile-friendly HTML one-pager (`assets/report-template.html`).
+
+Files:
+
+- `skills/deep-audience-analysis/SKILL.md`
+- `skills/deep-audience-analysis/references/intake.md`
+- `skills/deep-audience-analysis/references/blocks.md`
+- `skills/deep-audience-analysis/references/prompt-formula.md`
+- `skills/deep-audience-analysis/assets/report-template.html`
+
+The same methodology is also available as the `audience_intelligence_agent` role
+inside the `agent-team` pack, wired into `Workflow 0: Target Audience
+Intelligence`.
+
 ## Local Validation
 
 ```bash
