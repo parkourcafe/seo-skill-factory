@@ -120,6 +120,30 @@ The default scoring implements these rules:
 - `-3` if likely promotional only
 - `-2` if older than 2023 unless foundational
 
+### "Likely promotional only" heuristic
+
+The `-3` penalty is applied only when a video looks promotional **and** shows no
+educational signal. A video is treated as promotional-only when its title or
+description matches a promotional term but matches none of the educational or
+topic terms:
+
+- **Promotional terms:** register now, sign up, tickets, limited offer, coupon,
+  discount, sponsored, use code, buy now, product launch, launch event.
+- **Educational signal (any of these cancels the penalty):** how to, guide,
+  tutorial, framework, workflow, case study, audit, analysis, explained, lesson,
+  strategy — plus every AI Search, relevance-engineering, practical, and
+  technical topic term used by the positive rules above.
+
+So a sponsored talk that is still a real case study or tutorial is not
+penalized, while a pure "register now / limited offer" promo is.
+
+### "Foundational" heuristic
+
+The `-2` old-video penalty is skipped when the text looks foundational rather
+than time-sensitive news. Foundational terms include: foundational, foundation,
+fundamentals, basics, core concepts, information retrieval, crawling, indexing,
+ranking systems, search architecture.
+
 ## Gemini Analysis
 
 Gemini analysis sends public YouTube URLs as video inputs. Each selected video becomes `outputs/per_video_json/<video_id>.json` with this shape:
