@@ -45,6 +45,11 @@ gemini:
   request_timeout_seconds: 900
   sleep_between_requests_seconds: 2
 
+transcript:
+  # Preferred transcript languages for `analyze --source transcript`; first match wins.
+  languages:
+    - en
+
 synthesis:
   final_skill_filename: skill.md
 

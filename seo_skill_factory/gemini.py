@@ -84,11 +84,37 @@ class GeminiVideoAnalyzer:
         )
 
 
-def analyze_videos(input_csv: Path, config: AppConfig, *, force: bool = False) -> list[Path]:
+class GeminiTranscriptAnalyzer(GeminiVideoAnalyzer):
+    """Cheaper analyzer: sends the video's text transcript instead of the video."""
+
+    def analyze(self, video: VideoMetadata) -> dict[str, Any]:
+        transcript = fetch_transcript(video.video_id, self.config.transcript.languages)
+        prompt = build_video_prompt(video, self.config, transcript=transcript)
+        response = self._generate_legacy([prompt])
+        text = getattr(response, "text", "") or ""
+        parsed = parse_json_response(text)
+        return normalize_analysis(parsed, video)
+
+
+def build_analyzer(config: AppConfig, source: str = "video") -> GeminiVideoAnalyzer:
+    if source == "transcript":
+        return GeminiTranscriptAnalyzer(config)
+    if source == "video":
+        return GeminiVideoAnalyzer(config)
+    raise ValueError(f"Unknown analysis source: {source!r} (expected 'video' or 'transcript')")
+
+
+def analyze_videos(
+    input_csv: Path,
+    config: AppConfig,
+    *,
+    force: bool = False,
+    source: str = "video",
+) -> list[Path]:
     videos = read_videos_csv(input_csv)
     output_dir = config.output_dir / "per_video_json"
     output_dir.mkdir(parents=True, exist_ok=True)
-    analyzer = GeminiVideoAnalyzer(config)
+    analyzer = build_analyzer(config, source)
     written: list[Path] = []
     for index, video in enumerate(videos, 1):
         output_path = output_dir / f"{video.video_id}.json"
@@ -96,17 +122,26 @@ def analyze_videos(input_csv: Path, config: AppConfig, *, force: bool = False) -
             LOGGER.info("Skipping %s because %s already exists", video.video_id, output_path)
             written.append(output_path)
             continue
-        LOGGER.info("Analyzing %s/%s: %s", index, len(videos), video.title)
-        analysis = analyzer.analyze(video)
+        LOGGER.info("Analyzing %s/%s (%s): %s", index, len(videos), source, video.title)
+        try:
+            analysis = analyzer.analyze(video)
+        except Exception as exc:  # noqa: BLE001 - one bad video must not abort the batch
+            LOGGER.warning("Failed to analyze %s: %s", video.video_id, exc)
+            continue
         write_json(output_path, analysis)
         written.append(output_path)
         time.sleep(config.gemini.sleep_between_requests_seconds)
     return written
 
 
-def build_video_prompt(video: VideoMetadata, config: AppConfig) -> str:
-    return f"""
-Analyze this YouTube video as source material for an SEO AI Skill.
+def build_video_prompt(video: VideoMetadata, config: AppConfig, transcript: str | None = None) -> str:
+    source_line = (
+        "Analyze this YouTube video transcript as source material for an SEO AI Skill."
+        if transcript
+        else "Analyze this YouTube video as source material for an SEO AI Skill."
+    )
+    prompt = f"""
+{source_line}
 
 Author or channel context: {config.project.author_name}
 Niche: {config.project.niche}
@@ -144,6 +179,71 @@ Extraction rules:
 - Do not invent timestamps or quotes. If uncertain, omit them.
 - Keep each array item concise but useful for a downstream assistant instruction.
 """.strip()
+    if transcript:
+        prompt += (
+            "\n\nTranscript (each line is prefixed with a [m:ss] timestamp; "
+            "use these for quotes_or_timestamps and cite them where relevant):\n"
+            + transcript
+        )
+    return prompt
+
+
+def fetch_transcript(video_id: str, languages: list[str] | None = None) -> str:
+    try:
+        from youtube_transcript_api import YouTubeTranscriptApi
+    except ImportError as exc:
+        raise RuntimeError(
+            "youtube-transcript-api is required for transcript mode. "
+            "Install dependencies with: pip install -r requirements.txt"
+        ) from exc
+    langs = list(languages) if languages else ["en"]
+    segments = _fetch_transcript_segments(YouTubeTranscriptApi, video_id, langs)
+    text = _format_transcript(segments)
+    if not text:
+        raise RuntimeError(f"No transcript text available for {video_id}")
+    return text
+
+
+def _fetch_transcript_segments(api_cls: Any, video_id: str, languages: list[str]) -> list[dict[str, Any]]:
+    # youtube-transcript-api < 1.0 exposes a get_transcript classmethod that
+    # returns a list of dicts; >= 1.0 uses an instance .fetch() returning a
+    # FetchedTranscript. Support both so the pipeline is not pinned to one line.
+    getter = getattr(api_cls, "get_transcript", None)
+    if callable(getter):
+        raw = getter(video_id, languages=languages)
+    else:
+        fetched = api_cls().fetch(video_id, languages=languages)
+        to_raw = getattr(fetched, "to_raw_data", None)
+        raw = to_raw() if callable(to_raw) else fetched
+    segments: list[dict[str, Any]] = []
+    for item in raw:
+        if isinstance(item, dict):
+            text = item.get("text", "")
+            start = item.get("start", 0)
+        else:
+            text = getattr(item, "text", "")
+            start = getattr(item, "start", 0)
+        segments.append({"text": text, "start": start})
+    return segments
+
+
+def _format_transcript(segments: list[dict[str, Any]]) -> str:
+    lines = []
+    for segment in segments:
+        text = str(segment.get("text", "")).strip()
+        if not text:
+            continue
+        lines.append(f"[{_format_timestamp(segment.get('start', 0))}] {text}")
+    return "\n".join(lines)
+
+
+def _format_timestamp(seconds: Any) -> str:
+    try:
+        total = int(float(seconds or 0))
+    except (TypeError, ValueError):
+        total = 0
+    minutes, secs = divmod(max(total, 0), 60)
+    return f"{minutes}:{secs:02d}"
 
 
 def parse_json_response(text: str) -> dict[str, Any]:
