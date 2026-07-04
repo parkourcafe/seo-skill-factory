@@ -39,6 +39,40 @@ class ScoringTests(unittest.TestCase):
 
         self.assertEqual(score_video(video).score, -2)
 
+    def test_awards_two_points_for_2025_publication(self) -> None:
+        video = VideoMetadata(
+            video_id="y2025",
+            title="SEO news recap",
+            description="Monthly recap of updates.",
+            published_at="2025-06-01T00:00:00Z",
+            duration="PT10M",
+            duration_seconds=600,
+            url="https://www.youtube.com/watch?v=y2025",
+            caption_available=True,
+        )
+
+        scored = score_video(video)
+
+        self.assertEqual(scored.score, 2)
+        self.assertTrue(any("2025" in reason for reason in scored.score_reasons))
+
+    def test_penalizes_promotional_only_video(self) -> None:
+        video = VideoMetadata(
+            video_id="promo",
+            title="Register now: tickets, limited offer",
+            description="Sponsored.",
+            published_at="2024-06-01T00:00:00Z",
+            duration="PT10M",
+            duration_seconds=600,
+            url="https://www.youtube.com/watch?v=promo",
+            caption_available=True,
+        )
+
+        scored = score_video(video)
+
+        self.assertEqual(scored.score, -3)
+        self.assertTrue(any("promotional" in reason for reason in scored.score_reasons))
+
     def test_filtering_respects_duration_captions_and_keywords(self) -> None:
         videos = [
             VideoMetadata("a", "AI Search audit", "", "2025-01-01T00:00:00Z", "PT10M", 600, "u", True),
