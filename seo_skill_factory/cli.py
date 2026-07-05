@@ -41,6 +41,17 @@ def main() -> None:
     add_common(analyze_parser)
     analyze_parser.add_argument("--input", required=True, help="Path to selected_videos.csv")
     analyze_parser.add_argument("--force", action="store_true", help="Re-analyze videos even if JSON exists.")
+    analyze_parser.add_argument(
+        "--source",
+        choices=["video", "transcript"],
+        default="video",
+        help="Analyze the full video via Gemini video understanding, or its text transcript (far cheaper).",
+    )
+    analyze_parser.add_argument(
+        "--transcript-languages",
+        default="",
+        help="Comma-separated preferred transcript languages, e.g. en,ru. Transcript source only.",
+    )
 
     synthesize_parser = subparsers.add_parser("synthesize", help="Synthesize per-video JSON into skill documents.")
     add_common(synthesize_parser)
@@ -68,7 +79,12 @@ def main() -> None:
         return
 
     if args.command == "analyze":
-        written = analyze_videos(Path(args.input).expanduser(), config, force=args.force)
+        written = analyze_videos(
+            Path(args.input).expanduser(),
+            config,
+            force=args.force,
+            source=args.source,
+        )
         print(json.dumps({"json_files": [str(path) for path in written]}, indent=2))
         return
 

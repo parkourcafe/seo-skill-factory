@@ -46,6 +46,11 @@ class GeminiConfig:
 
 
 @dataclass
+class TranscriptConfig:
+    languages: list[str] = field(default_factory=lambda: ["en"])
+
+
+@dataclass
 class SynthesisConfig:
     final_skill_filename: str = "skill.md"
 
@@ -66,6 +71,7 @@ class AppConfig:
     youtube: YouTubeConfig = field(default_factory=YouTubeConfig)
     selection: SelectionConfig = field(default_factory=SelectionConfig)
     gemini: GeminiConfig = field(default_factory=GeminiConfig)
+    transcript: TranscriptConfig = field(default_factory=TranscriptConfig)
     synthesis: SynthesisConfig = field(default_factory=SynthesisConfig)
     agent_team: AgentTeamConfig = field(default_factory=AgentTeamConfig)
 
@@ -100,6 +106,7 @@ def load_config(path: str | Path) -> AppConfig:
         youtube=_youtube_config(data.get("youtube", {})),
         selection=_selection_config(data.get("selection", {})),
         gemini=_gemini_config(data.get("gemini", {})),
+        transcript=_transcript_config(data.get("transcript", {})),
         synthesis=_synthesis_config(data.get("synthesis", {})),
         agent_team=_agent_team_config(data.get("agent_team", {})),
     )
@@ -137,6 +144,8 @@ def apply_overrides(config: AppConfig, overrides: dict[str, Any]) -> AppConfig:
             config.agent_team.case_context = str(value)
         elif key == "languages":
             config.agent_team.languages = _list_value(value)
+        elif key == "transcript_languages":
+            config.transcript.languages = _list_value(value)
     return config
 
 
@@ -189,6 +198,10 @@ def _gemini_config(data: dict[str, Any]) -> GeminiConfig:
         request_timeout_seconds=int(data.get("request_timeout_seconds", 900)),
         sleep_between_requests_seconds=float(data.get("sleep_between_requests_seconds", 2)),
     )
+
+
+def _transcript_config(data: dict[str, Any]) -> TranscriptConfig:
+    return TranscriptConfig(languages=_list_value(data.get("languages", ["en"])) or ["en"])
 
 
 def _synthesis_config(data: dict[str, Any]) -> SynthesisConfig:

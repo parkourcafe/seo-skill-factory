@@ -59,6 +59,13 @@ Analyze selected videos with Gemini:
 python main.py analyze --input outputs/selected_videos.csv --config config.yaml
 ```
 
+Analyze the cheaper way, from each video's text transcript instead of the full video:
+
+```bash
+python main.py analyze --input outputs/selected_videos.csv --source transcript --config config.yaml
+python main.py analyze --input outputs/selected_videos.csv --source transcript --transcript-languages en,ru --config config.yaml
+```
+
 Synthesize the final skill:
 
 ```bash
@@ -146,7 +153,14 @@ ranking systems, search architecture.
 
 ## Gemini Analysis
 
-Gemini analysis sends public YouTube URLs as video inputs. Each selected video becomes `outputs/per_video_json/<video_id>.json` with this shape:
+`analyze` has two sources, both producing the identical per-video JSON:
+
+- `--source video` (default) sends the public YouTube URL to Gemini for native video understanding. Highest fidelity (it "watches" the video), but video is tokenized densely — roughly ~300 tokens per second — so a 30-minute video costs on the order of ~500K input tokens.
+- `--source transcript` fetches the video's text transcript (via `youtube-transcript-api`) and sends only the text. The same 30-minute video is a few thousand tokens instead of hundreds of thousands — commonly ~10–90x cheaper on input tokens. It requires the video to have captions (`caption_available`), reads no visuals, and depends on an unofficial transcript source, so a video without a fetchable transcript is logged and skipped rather than aborting the batch. Preferred languages come from `transcript.languages` in `config.yaml` or `--transcript-languages`.
+
+Note: `youtube-transcript-api` calls an undocumented YouTube endpoint and is best run from a residential IP at modest volume; YouTube blocks many datacenter/cloud IP ranges, so transcript fetches may fail from cloud servers without a residential proxy.
+
+Gemini video analysis sends public YouTube URLs as video inputs. Each selected video becomes `outputs/per_video_json/<video_id>.json` with this shape:
 
 ```json
 {
